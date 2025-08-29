@@ -2,33 +2,32 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Armazenamento em memória (será resetado a cada cold start no Vercel)
+// Armazenamento em memória
 let agendamentos = [];
 let nextId = 1;
 
-// Dados de exemplo para desenvolvimento (opcional)
-if (process.env.NODE_ENV !== 'production') {
-    agendamentos = [
-        {
-            id: 1,
-            nome: "João Silva",
-            telefone: "(11) 99999-9999",
-            email: "joao@email.com",
-            servico: "Consulta Médica",
-            data_agendamento: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            observacoes: "Primeira consulta",
-            status: "agendado",
-            criado_em: new Date().toISOString(),
-            atualizado_em: new Date().toISOString()
-        }
-    ];
-    nextId = 2;
-}
+// Dados de exemplo
+agendamentos = [
+    {
+        id: 1,
+        nome: "João Silva",
+        telefone: "(11) 99999-9999",
+        email: "joao@email.com",
+        servico: "Consulta Médica",
+        data_agendamento: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        observacoes: "Primeira consulta",
+        status: "agendado",
+        criado_em: new Date().toISOString(),
+        atualizado_em: new Date().toISOString()
+    }
+];
+nextId = 2;
 
 // Utilitários
 const formatDate = (date) => new Date(date).toISOString();
@@ -46,12 +45,13 @@ const validateAgendamento = (data) => {
     }
 };
 
-// ROTA RAIZ - ADICIONE ESTA ROTA
+// ROTA RAIZ
 app.get('/', (req, res) => {
     res.json({
         success: true,
-        message: 'API de Agendamentos está funcionando!',
+        message: '🚀 API de Agendamentos no Render!',
         timestamp: new Date().toISOString(),
+        platform: 'Render',
         endpoints: {
             'GET /': 'Esta página',
             'GET /status': 'Status da API',
@@ -73,7 +73,6 @@ app.get('/agendamentos', (req, res) => {
         const { status, data, nome, limite = '50' } = req.query;
         let resultado = [...agendamentos];
 
-        // Filtros
         if (status) {
             resultado = resultado.filter(a => a.status === status);
         }
@@ -90,10 +89,7 @@ app.get('/agendamentos', (req, res) => {
             );
         }
 
-        // Ordenar por data
         resultado.sort((a, b) => new Date(a.data_agendamento) - new Date(b.data_agendamento));
-        
-        // Limitar resultados
         resultado = resultado.slice(0, parseInt(limite));
 
         res.json({
@@ -239,8 +235,6 @@ app.delete('/agendamentos/:id', (req, res) => {
     }
 });
 
-// ROTAS DE BACKUP E RESTORE
-
 // 6. Fazer backup dos dados
 app.get('/backup', (req, res) => {
     try {
@@ -254,8 +248,7 @@ app.get('/backup', (req, res) => {
         res.json({
             success: true,
             message: 'Backup criado com sucesso',
-            backup,
-            note: 'No Vercel, salve este JSON para restaurar depois'
+            backup
         });
     } catch (error) {
         res.status(500).json({
@@ -290,22 +283,20 @@ app.post('/restore', (req, res) => {
     }
 });
 
-// ROTAS UTILITÁRIAS
-
 // 8. Status da API
 app.get('/status', (req, res) => {
     res.json({
         success: true,
         status: 'online',
-        platform: 'vercel',
+        platform: 'render',
         timestamp: new Date().toISOString(),
         total_agendamentos: agendamentos.length,
         memoria_usada: process.memoryUsage(),
-        note: 'Dados são perdidos em cold starts no Vercel'
+        uptime: process.uptime()
     });
 });
 
-// 9. Limpar todos os agendamentos (usar com cuidado!)
+// 9. Limpar todos os agendamentos
 app.delete('/limpar-tudo', (req, res) => {
     agendamentos = [];
     nextId = 1;
@@ -330,15 +321,12 @@ app.get('/stats', (req, res) => {
         const em7dias = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
         agendamentos.forEach(a => {
-            // Contar por status
             stats.por_status[a.status] = (stats.por_status[a.status] || 0) + 1;
             
-            // Contar hoje
             if (new Date(a.data_agendamento).toDateString() === hoje) {
                 stats.hoje++;
             }
             
-            // Contar próximos 7 dias
             if (new Date(a.data_agendamento) <= em7dias && new Date(a.data_agendamento) >= new Date()) {
                 stats.proximos_7_dias++;
             }
@@ -360,10 +348,12 @@ app.get('/stats', (req, res) => {
 app.use('*', (req, res) => {
     res.status(404).json({
         success: false,
-        error: 'Endpoint não encontrado',
-        message: 'Verifique a documentação da API'
+        error: 'Endpoint não encontrado'
     });
 });
 
-// IMPORTANTE: Para Vercel Serverless Functions
-module.exports = app;
+// Iniciar servidor
+app.listen(PORT, () => {
+    console.log(`🚀 API rodando na porta ${PORT}`);
+    console.log(`📊 Status: http://localhost:${PORT}/status`);
+});
