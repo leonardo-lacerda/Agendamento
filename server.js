@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080; // ⚠️ DISCLOUD USA PORTA 8080
 
 // Middleware
 app.use(cors());
@@ -49,9 +49,9 @@ const validateAgendamento = (data) => {
 app.get('/', (req, res) => {
     res.json({
         success: true,
-        message: '🚀 API de Agendamentos no Render!',
+        message: '🚀 API de Agendamentos na Discloud!',
         timestamp: new Date().toISOString(),
-        platform: 'Render',
+        platform: 'Discloud',
         endpoints: {
             'GET /': 'Esta página',
             'GET /status': 'Status da API',
@@ -288,7 +288,7 @@ app.get('/status', (req, res) => {
     res.json({
         success: true,
         status: 'online',
-        platform: 'render',
+        platform: 'discloud',
         timestamp: new Date().toISOString(),
         total_agendamentos: agendamentos.length,
         memoria_usada: process.memoryUsage(),
@@ -352,8 +352,8 @@ app.use('*', (req, res) => {
     });
 });
 
-// Iniciar servidor
+// Iniciar servidor na porta 8080 (obrigatório para Discloud)
 app.listen(PORT, () => {
     console.log(`🚀 API rodando na porta ${PORT}`);
-    console.log(`📊 Status: http://localhost:${PORT}/status`);
+    console.log(`📊 Discloud API ativa!`);
 });
