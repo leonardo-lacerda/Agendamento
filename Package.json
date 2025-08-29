@@ -1,7 +1,7 @@
 {
   "name": "api-agendamentos",
   "version": "1.0.0",
-  "description": "API de Agendamentos para Render",
+  "description": "API de Agendamentos",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -12,6 +12,6 @@
     "cors": "^2.8.5"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "18.x"
   }
 }
