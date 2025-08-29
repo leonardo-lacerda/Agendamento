@@ -46,7 +46,26 @@ const validateAgendamento = (data) => {
     }
 };
 
-// ROTAS PRINCIPAIS
+// ROTA RAIZ - ADICIONE ESTA ROTA
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'API de Agendamentos está funcionando!',
+        timestamp: new Date().toISOString(),
+        endpoints: {
+            'GET /': 'Esta página',
+            'GET /status': 'Status da API',
+            'GET /agendamentos': 'Listar agendamentos',
+            'POST /agendamentos': 'Criar agendamento',
+            'GET /agendamentos/:id': 'Buscar agendamento por ID',
+            'PUT /agendamentos/:id': 'Atualizar agendamento',
+            'DELETE /agendamentos/:id': 'Deletar agendamento',
+            'GET /stats': 'Estatísticas',
+            'GET /backup': 'Fazer backup',
+            'POST /restore': 'Restaurar backup'
+        }
+    });
+});
 
 // 1. Listar agendamentos com filtros
 app.get('/agendamentos', (req, res) => {
@@ -299,55 +318,52 @@ app.delete('/limpar-tudo', (req, res) => {
 
 // 10. Estatísticas rápidas
 app.get('/stats', (req, res) => {
-    const stats = {
-        total: agendamentos.length,
-        por_status: {},
-        proximos_7_dias: 0,
-        hoje: 0
-    };
+    try {
+        const stats = {
+            total: agendamentos.length,
+            por_status: {},
+            proximos_7_dias: 0,
+            hoje: 0
+        };
 
-    const hoje = new Date().toDateString();
-    const em7dias = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const hoje = new Date().toDateString();
+        const em7dias = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    agendamentos.forEach(a => {
-        // Contar por status
-        stats.por_status[a.status] = (stats.por_status[a.status] || 0) + 1;
-        
-        // Contar hoje
-        if (new Date(a.data_agendamento).toDateString() === hoje) {
-            stats.hoje++;
-        }
-        
-        // Contar próximos 7 dias
-        if (new Date(a.data_agendamento) <= em7dias && new Date(a.data_agendamento) >= new Date()) {
-            stats.proximos_7_dias++;
-        }
-    });
+        agendamentos.forEach(a => {
+            // Contar por status
+            stats.por_status[a.status] = (stats.por_status[a.status] || 0) + 1;
+            
+            // Contar hoje
+            if (new Date(a.data_agendamento).toDateString() === hoje) {
+                stats.hoje++;
+            }
+            
+            // Contar próximos 7 dias
+            if (new Date(a.data_agendamento) <= em7dias && new Date(a.data_agendamento) >= new Date()) {
+                stats.proximos_7_dias++;
+            }
+        });
 
-    res.json({
-        success: true,
-        stats
-    });
+        res.json({
+            success: true,
+            stats
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 // Middleware de erro 404
 app.use('*', (req, res) => {
     res.status(404).json({
         success: false,
-        error: 'Endpoint não encontrado'
+        error: 'Endpoint não encontrado',
+        message: 'Verifique a documentação da API'
     });
 });
 
-// Para Vercel - export da função
+// IMPORTANTE: Para Vercel Serverless Functions
 module.exports = app;
-
-// Para desenvolvimento local
-if (require.main === module) {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`🚀 API de Agendamentos rodando na porta ${PORT}`);
-        console.log(`📊 Status: http://localhost:${PORT}/status`);
-        console.log(`📋 Agendamentos: http://localhost:${PORT}/agendamentos`);
-        console.log(`💾 Backup: http://localhost:${PORT}/backup`);
-    });
-}
