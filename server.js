@@ -11,6 +11,24 @@ app.use(express.json());
 let agendamentos = [];
 let nextId = 1;
 
+// Dados de exemplo para desenvolvimento (opcional)
+if (process.env.NODE_ENV !== 'production') {
+    agendamentos = [
+        {
+            id: 1,
+            nome: "João Silva",
+            telefone: "(11) 99999-9999",
+            email: "joao@email.com",
+            servico: "Consulta Médica",
+            data_agendamento: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            observacoes: "Primeira consulta",
+            status: "agendado",
+            criado_em: new Date().toISOString(),
+            atualizado_em: new Date().toISOString()
+        }
+    ];
+    nextId = 2;
+}
 
 // Utilitários
 const formatDate = (date) => new Date(date).toISOString();
